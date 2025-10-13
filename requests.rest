@@ -1,0 +1,9 @@
+@base_url = http://localhost:3000
+
+GET {{base_url}}
+
+####
+GET {{base_url}}/api/products/1/reviews
+
+####
+POST {{base_url}}/api/products/1/reviews/summarise
