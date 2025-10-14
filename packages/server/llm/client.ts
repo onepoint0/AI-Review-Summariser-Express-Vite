@@ -12,7 +12,12 @@ type GenerateTextOptions = {
 };
 
 export const llmClient = {
-    async generateText({ model = 'gpt-4o-mini', prompt, temperature = 0.2, maxTokens = 100 }: GenerateTextOptions): Promise<string> {
+    async generateText({
+        model = 'gpt-4o-mini',
+        prompt,
+        temperature = 0.2,
+        maxTokens = 100,
+    }: GenerateTextOptions): Promise<string> {
         const response = await client.responses.create({
             model,
             input: prompt,
