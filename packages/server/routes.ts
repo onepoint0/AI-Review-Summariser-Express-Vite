@@ -6,8 +6,8 @@ import reviewController from './controllers/review.controller';
 const router = express.Router();
 
 // this should not show route handlers, they should just be references to functions
-router.get('/', (req: Request, res: Response) => {
-    res.send('hello!');
+router.get('/api/hello', (req: Request, res: Response) => {
+    res.json({ message: 'hello!' });
 });
 
 router.get('/api/products/:id/reviews', reviewController.getReviews);
