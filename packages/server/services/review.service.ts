@@ -1,20 +1,44 @@
 import type { Review } from '../generated/prisma';
 import reviewRepository from '../repositories/review.repository';
 import { llmClient } from '../llm/client';
+import template from '../prompts/summarise-reviews.txt';
+
+type ReviewData = {
+    reviews: Review[];
+    summary: string | null;
+};
 
 const reviewService = {
-    getReviews(productId: number): Promise<Review[]> {
+    async getReviews(productId: number): Promise<ReviewData> {
         console.log('[Review Service - getReviews]');
 
-        return reviewRepository.getReviews(productId);
+        const reviews = await reviewRepository.getReviews(productId);
+
+        const summary = await reviewRepository.getReviewSummary(productId);
+
+        return {
+            reviews,
+            summary: summary,
+        };
     },
     async summariseReviews(productId: number): Promise<string> {
+        const existingSummary = await reviewRepository.getReviewSummary(productId);
+
+        if (existingSummary) {
+            console.log('[Review Service] - got existing summary, returning...');
+            return existingSummary;
+        }
+
         const reviews = await reviewRepository.getReviews(productId, 5);
         const joinedReviews = reviews.map((r) => r.content).join('\n\n');
 
-        const prompt = `Summarise the following customer reviews into a short paragraph, highlighting key themes both positive and negative ${joinedReviews}`;
+        const prompt = template.replace('{{reviews}}', joinedReviews);
 
-        return llmClient.generateText({ prompt });
+        const summary = await llmClient.generateText({ prompt });
+
+        await reviewRepository.storeReviewSummary(productId, summary);
+
+        return summary;
     },
 };
 
