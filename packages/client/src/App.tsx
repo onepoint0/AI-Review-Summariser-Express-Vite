@@ -1,15 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 
 function App() {
+    const [message, setMessage] = useState('');
     useEffect(() => {
         console.log('in use effect');
         fetch('/api/hello')
             .then((res) => res.json())
-            .then((res) => console.log('res = ', res));
+            .then((res) => setMessage(res.message));
     }, []);
 
-    return <></>;
+    return <div className="font-bold">{message}</div>;
 }
 
 export default App;
