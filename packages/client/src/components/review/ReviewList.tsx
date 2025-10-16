@@ -1,7 +1,7 @@
 import axios from 'axios';
 import StarRating from './StarRating';
 import Skeleton from 'react-loading-skeleton';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Button } from '../ui/button';
 import { HiSparkles } from 'react-icons/hi2';
 import { useState } from 'react';
@@ -29,9 +29,14 @@ type SummariseRespose = {
 };
 
 const ReviewList = ({ productId }: Props) => {
-    const [summary, setSummary] = useState<string | null>(null);
-    const [isSummaryLoading, setIsSummaryLoading] = useState(false);
-    const [summaryError, setSummaryError] = useState('');
+    const {
+        mutate: handleSummarise,
+        isPending: isSummaryLoading,
+        isError: isSummaryError,
+        data: summariseRespose,
+    } = useMutation<SummariseRespose>({
+        mutationFn: () => summariseReviews(),
+    });
 
     const {
         data: reviewData,
@@ -43,27 +48,16 @@ const ReviewList = ({ productId }: Props) => {
     }); // don't need useEffect for this bc it is running, caching, retrying etc in the query hook :D
 
     const fetchReviews = async () => {
-        console.log('in fetch');
+        console.log('[Fetch Reviews ] in fetch');
         const { data } = await axios.get<GetReviewsResponse>(`/api/products/${productId}/reviews`);
         console.log('review data = ', data);
-        setSummary(data?.summary);
-        console.log('summary set to ', summary);
         return data;
     };
 
-    const handleSummarisation = async () => {
-        try {
-            setSummaryError('');
-            setIsSummaryLoading(true);
-            console.log('summarise clicked');
-            const { data } = await axios.post<SummariseRespose>(`/api/products/${productId}/reviews/summarise`);
-            setSummary(data?.summary);
-        } catch (e) {
-            console.error('[Review List ] error on get summary ', e);
-            setSummaryError('Error getting summary, please try again later!');
-        } finally {
-            setIsSummaryLoading(false);
-        }
+    const summariseReviews = async () => {
+        console.log('summarise clicked');
+        const { data } = await axios.post<SummariseRespose>(`/api/products/${productId}/reviews/summarise`);
+        return data;
     };
 
     if (isLoading) {
@@ -81,6 +75,8 @@ const ReviewList = ({ productId }: Props) => {
         return <p className="text-red-500">Could not fetch reveiws, please try again.</p>;
     }
 
+    const summary = reviewData?.summary || summariseRespose?.summary;
+
     return (
         <div className="flex flex-col gap-5">
             {summary ? (
@@ -92,7 +88,7 @@ const ReviewList = ({ productId }: Props) => {
                 <div>
                     <Button
                         className="background-black cursor-pointer"
-                        onClick={handleSummarisation}
+                        onClick={() => handleSummarise()}
                         disabled={isSummaryLoading}
                     >
                         <HiSparkles /> Summarise Reviews
@@ -102,7 +98,9 @@ const ReviewList = ({ productId }: Props) => {
                             <ReviewSkeleton />
                         </div>
                     )}
-                    {summaryError && <p className="text-red-500 py-2">{summaryError}</p>}
+                    {isSummaryError && (
+                        <p className="text-red-500 py-2">Could not summarise error, please try again later!</p>
+                    )}
                 </div>
             )}
             {reviewData?.reviews &&
