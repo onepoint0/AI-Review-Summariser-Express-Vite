@@ -3,20 +3,31 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { Button } from '../ui/button';
 import { HiSparkles } from 'react-icons/hi2';
 import ReviewSkeleton from './ReviewSkeleton';
-import { reviewApi, type GetReviewsResponse, type SummariseRespose } from './ReviewAPI';
+import { reviewApi, type GetReviewsResponse, type SummariseRespose } from './reviewApi';
 
 type Props = {
-    productId: number;
+    productId: number | null;
 };
 
 const ReviewList = ({ productId }: Props) => {
     const summaryMutation = useMutation<SummariseRespose>({
-        mutationFn: () => reviewApi.summariseReviews(productId),
+        mutationFn: () => {
+            if (productId) {
+                return reviewApi.summariseReviews(productId);
+            } else {
+                return Promise.resolve({ summary: '' });
+            }
+        },
     });
 
     const reviewQuery = useQuery<GetReviewsResponse>({
         queryKey: ['reviews', productId],
-        queryFn: () => reviewApi.fetchReviews(productId),
+        queryFn: () => {
+            if (!productId) {
+                return { reviews: [], summary: null };
+            }
+            return reviewApi.fetchReviews(productId);
+        },
     }); // don't need useEffect for this bc it is running, caching, retrying etc in the query hook :D
 
     if (reviewQuery.isLoading) {
@@ -45,13 +56,15 @@ const ReviewList = ({ productId }: Props) => {
                 </div>
             ) : (
                 <div>
-                    <Button
-                        className="background-black cursor-pointer"
-                        onClick={() => summaryMutation.mutate()}
-                        disabled={summaryMutation.isPending}
-                    >
-                        <HiSparkles /> Summarise Reviews
-                    </Button>
+                    {reviewQuery.data?.reviews && reviewQuery.data?.reviews.length > 0 && (
+                        <Button
+                            className="background-black cursor-pointer"
+                            onClick={() => summaryMutation.mutate()}
+                            disabled={summaryMutation.isPending}
+                        >
+                            <HiSparkles /> Summarise Reviews
+                        </Button>
+                    )}
                     {summaryMutation.isPending && (
                         <div className="py-2">
                             <ReviewSkeleton />

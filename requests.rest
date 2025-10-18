@@ -11,3 +11,6 @@ POST {{base_url}}/api/products/5/reviews/summarise
 
 #### test no existing reviews error case - should return 404 (pId has no revs in test data)
 POST {{base_url}}/api/products/6/reviews/summarise
+
+### get all products
+GET {{base_url}}/api/products

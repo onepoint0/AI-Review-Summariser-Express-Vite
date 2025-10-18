@@ -1,12 +1,8 @@
 import './App.css';
-import ReviewList from './components/review/ReviewList';
+import { ReviewPage } from './components/review/ReviewPage';
 
 function App() {
-    return (
-        <div>
-            <ReviewList productId={1} />
-        </div>
-    );
+    return <ReviewPage />;
 }
 
 export default App;

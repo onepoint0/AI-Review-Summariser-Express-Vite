@@ -1,7 +1,7 @@
 import express from 'express';
 import type { Request, Response } from 'express';
-import reviewService from './services/review.service';
 import reviewController from './controllers/review.controller';
+import productController from './controllers/product.controller';
 
 const router = express.Router();
 
@@ -9,6 +9,8 @@ const router = express.Router();
 router.get('/api/hello', (req: Request, res: Response) => {
     res.json({ message: 'hello!' });
 });
+
+router.get('/api/products', productController.getProducts);
 
 router.get('/api/products/:id/reviews', reviewController.getReviews);
 

@@ -8,5 +8,8 @@ const productRepository = {
             where: { id: productId },
         });
     },
+    getProducts(): Promise<Product[]> {
+        return prisma.product.findMany();
+    },
 };
 export default productRepository;

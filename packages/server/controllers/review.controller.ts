@@ -22,7 +22,6 @@ const reviewController = {
         }
 
         const reviews = await reviewService.getReviews(productId);
-
         return res.json(reviews);
     },
     async summariseReviews(req: Request, res: Response) {
